@@ -1,53 +1,27 @@
+from mymodules import wish_hbd,getJsonData
 from unicodedata import name
-import discord 
+import discord,os
 from decouple import config
-import json
+
 import datetime
-from discord.ext import tasks
+from discord.ext import tasks,commands
 
-client = discord.Client(intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='$' ,intents=discord.Intents.all())
 
-# function returns text to send 
-def wish_hbd(name):
-    return f"@everyone \nHappy Birthday to you, {name}"
 
-# This function returns a list of values 
-# based on conditions on moneth and day from the JSON file.
-# use to return names of members having their birthday on current date.
-def getJsonData(file, name, birth_month, birth_date, current_month, current_date):
-     
-    # Load the file's data in 'data' variable
-    data = json.load(file)
-    retv =[]
- 
-    # If the attributes' value conditions are satisfied,
-    # append the name into the list to be returned.
-    for i in data:
-        if(i[birth_month]== current_month and i[birth_date]== current_date):
-           retv.append(i[name])
-    return retv
- 
-# Opening the JSON file (data.json) in read only mode.
-data_file = open("data.json", "r")
-namev =[]
-print("Script Running")
- 
-# This will keep rerunning the part of
-# the code from 'while True' to 'break'.
-# use to keep waiting for the JSON function
-# to return a non empty list.
-# In practice, this function will keep rerunning at
-# 11:59pm a day before the birthday and break out at 12:00am.
-
-@client.event
+@bot.event
 async def on_ready():
-    print(f"logged in as {client.user}")
+    send_wishes.start()
+    print(f"logged in as {bot.user}")
 
-
+@tasks.loop(hours=1)
 async def send_wishes():
-    message_channel_id= '1025458220912869389' #channel ID to send 
-    await client.wait_until_ready()
-    message_channel=client.get_channel(message_channel_id)
+    
+    # Opening the JSON file (data.json) in read only mode.
+    data_file = open("data.json", "r")
+    namev =[]
+    await bot.wait_until_ready()
+    
     while True:
         try:
             # to get current date
@@ -56,7 +30,11 @@ async def send_wishes():
         except:
             continue
         if namev !=[]:
-            message_channel.send(wish_hbd(namev))
+            message_channel=bot.get_channel(1025458220912869389)
+            for name in namev:
+                await message_channel.send(wish_hbd(name))
+            break
             
-send_wishes()
-client.run(config('TOKEN'))
+
+
+bot.run(config('TOKEN'))
