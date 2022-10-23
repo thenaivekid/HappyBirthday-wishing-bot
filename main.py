@@ -1,5 +1,5 @@
 from mymodules import wish_hbd,getJsonData
-from boto.s3.connection import S3Connection
+from decouple import config
 
 import discord
 import datetime,os
@@ -36,4 +36,4 @@ async def send_wishes():
             
 
 
-bot.run(S3Connection(os.environ['TOKEN']))
+bot.run(config('TOKEN'))
